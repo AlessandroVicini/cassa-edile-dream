@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Ogni partita vive sotto partite/{codice}: chi conosce il codice legge e scrive solo quella partita.
+    // Si possono scrivere solo i 6 tavoli (g1..g6) e la configurazione della regia (config/partita).
+    match /partite/{codice}/{tipo}/{doc} {
+      allow read: if codice.matches('^[A-Z0-9]{4,8}$');
+      allow write: if codice.matches('^[A-Z0-9]{4,8}$')
+                   && ((tipo == 'gruppi' && doc.matches('^g[1-6]$'))
+                       || (tipo == 'config' && doc == 'partita'));
+    }
+    // Tutto il resto è chiuso.
+  }
+}

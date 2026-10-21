@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cassa Edile Dream</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: il tabellone del poster (Uffici giallo in alto, Prestazioni arancio in basso, Premialità azzurro a destra),
+   con la carta della Cassa e il round in testa. Tema unico chiaro, scelto: è un tabellone da tavolo. */
+:root{
+  --sky:#19b8d4; --leaf:#9fd28e; --sun:#f6d86a;
+  --board-ink:#4b3f38; --paper:#fffbf2; --white:#ffffff;
+  --uff:#f7d46c; --uff-deep:#e9b93a;
+  --prest:#fb9150; --prest-deep:#e8702a;
+  --prem:#eef4fb; --prem-deep:#b9cde6;
+  --blue:#2f63ad; --orange:#e2700f; --green:#4c8a39; --viola:#6a32a2; --viola-soft:#f1e9fa;
+  --ink:#2a231f; --muted:#6c5f57; --line:#d9cfc4;
+  --bad:#c42a2c; --bad-soft:#fde6e4; --good:#2c7a3a; --good-soft:#e3f3e1; --warn:#a86500; --warn-soft:#fff1d4;
+  --f-hand:"Kalam","Comic Sans MS",cursive;
+  --f-body:"Lexend",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  background:linear-gradient(115deg,var(--sky) 0%,var(--leaf) 52%,var(--sun) 100%) fixed;
+  background-color:var(--leaf);
+  color:var(--ink); font-family:var(--f-body); font-size:15px; line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 40px;
+}
+.wrap{max-width:1240px;margin:0 auto}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:18px 14px}
+.brand{background:var(--paper);border:3px solid var(--board-ink);padding:6px 20px 4px;border-radius:4px;box-shadow:4px 4px 0 var(--board-ink);
+  font-family:var(--f-hand);font-weight:700;font-size:26px;letter-spacing:.06em;text-transform:uppercase;line-height:1.1}
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.55);padding:4px;border-radius:999px;border:2px solid var(--board-ink)}
+.tabs button{border:0;background:transparent;padding:7px 16px;border-radius:999px;font-weight:600}
+.tabs button[aria-selected="true"]{background:var(--board-ink);color:var(--paper)}
+.sync{margin-left:auto;font-size:12.5px;background:rgba(255,255,255,.7);border:1.5px solid var(--board-ink);border-radius:999px;padding:4px 12px;display:flex;align-items:center;gap:6px}
+.sync i{width:9px;height:9px;border-radius:50%;background:#999;display:inline-block}
+.sync.on i{background:var(--good)} .sync.ro i{background:var(--warn)}
+
+/* shared bits */
+.panel{background:var(--paper);border:3px solid var(--board-ink);border-radius:22px;box-shadow:6px 6px 0 rgba(75,63,56,.85)}
+.tag{display:inline-block;background:var(--white);border:2px solid var(--board-ink);border-radius:12px;padding:2px 16px 0;font-family:var(--f-hand);font-weight:700;font-size:23px;line-height:1.5;position:relative}
+.tag::before,.tag::after{content:"";position:absolute;top:-12px;width:3px;height:16px;background:var(--board-ink);border-radius:2px}
+.tag::before{left:16px}.tag::after{right:16px}
+.btn{border:2px solid var(--board-ink);background:var(--white);border-radius:12px;padding:8px 16px;font-weight:600;box-shadow:3px 3px 0 var(--board-ink);transition:transform .08s}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--board-ink)}
+.btn.primary{background:var(--board-ink);color:var(--paper)}
+.btn.viola{background:var(--viola);color:#fff;border-color:#3d1a63;box-shadow:3px 3px 0 #3d1a63}
+.btn.small{padding:4px 10px;font-size:13px;box-shadow:2px 2px 0 var(--board-ink)}
+.btn.ghost{background:transparent;box-shadow:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.chip.ok{background:var(--good-soft);color:var(--good)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.neutral{background:#eee6dc;color:var(--muted)}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+input[type=text],input[type=number],select,textarea{border:1.5px solid var(--line);background:var(--white);border-radius:8px;padding:6px 8px;width:100%;min-width:0;font-size:14px;color:var(--ink);font-weight:400}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px rgba(47,99,173,.18)}
+.muted{color:var(--muted)}
+.hint{font-size:12px;color:var(--muted)}
+
+/* chooser */
+.chooser{padding:24px}
+.chooser h2{font-family:var(--f-hand);font-size:30px}
+.tables{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:16px}
+.tablecard{text-align:left;border:3px solid var(--board-ink);border-radius:16px;background:var(--white);padding:14px 16px;display:flex;flex-direction:column;gap:4px;box-shadow:4px 4px 0 var(--board-ink)}
+.tablecard:hover{background:#fff6dc}
+.tablecard b{font-family:var(--f-hand);font-size:24px;line-height:1.1}
+.how{margin-top:22px;border-top:2px dashed var(--line);padding-top:16px;max-width:75ch}
+.how summary{font-weight:700;cursor:pointer}
+.how ol{padding-left:20px;margin:10px 0 0;display:grid;gap:6px}
+
+/* game head */
+.head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:18px;margin-bottom:22px}
+.cassacard{background:#fffdf6;border:3px solid #6b3f12;outline:4px solid #f4c66a;outline-offset:-10px;border-radius:14px;padding:22px 24px;box-shadow:5px 5px 0 rgba(75,63,56,.85)}
+.cassacard .kind{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.cassacard h2{font-family:Georgia,"Times New Roman",serif;font-size:28px;margin:2px 0 10px}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.facts dt{color:var(--muted)} .facts dd{margin:0;font-weight:600}
+.ages{display:flex;gap:6px;margin:8px 0 2px;height:26px;border-radius:6px;overflow:hidden}
+.ages span{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden}
+.contrib{margin-top:12px;padding-top:10px;border-top:1.5px dashed var(--line);font-size:13.5px;display:grid;gap:3px}
+.contrib div{display:flex;justify-content:space-between;gap:8px}
+.roundbox{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.roundbox .rt{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.roundbox .rt h3{font-family:var(--f-hand);font-size:26px;line-height:1.1}
+.roundnum{background:var(--board-ink);color:var(--paper);border-radius:999px;padding:2px 12px;font-weight:700;font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.confirm{background:var(--warn-soft);border:1.5px solid var(--warn);border-radius:12px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.confirm p{margin:0;flex:1 1 220px;font-size:13.5px}
+.deck{display:flex;gap:12px;flex-wrap:wrap}
+.vcard{width:150px;min-height:180px;border-radius:14px;border:4px solid var(--viola);background:var(--white);padding:12px;font-size:13px;position:relative}
+.vcard.back{background:repeating-linear-gradient(45deg,var(--viola) 0 10px,#7d45b8 10px 20px);border-color:#3d1a63;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--f-hand);font-size:22px;text-align:center;transition:transform .2s}
+.vcard.back:hover{transform:translateY(-4px) rotate(-1.5deg)}
+.vcard h4{margin:0 0 6px;color:var(--viola);font-size:13px}
+.vcard ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.vcard .aum{margin-top:10px;border-top:1.5px solid var(--viola);padding-top:6px}
+.vcard .aum b{display:block;color:var(--viola);font-size:20px}
+.r2grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.cmp th,.cmp td{padding:4px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.cmp th:first-child,.cmp td:first-child{text-align:left}
+.cmp th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+
+/* board */
+.board{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);grid-template-areas:"uff prem" "prest prem";gap:22px;align-items:start}
+.area{border:4px solid var(--board-ink);border-radius:48px 48px 48px 48px;padding:26px 24px 24px;box-shadow:7px 7px 0 var(--board-ink);min-width:0}
+.area.uff{grid-area:uff;background:var(--uff);border-radius:60px 24px 60px 24px}
+.area.prest{grid-area:prest;background:var(--prest);border-radius:60px 24px 90px 24px}
+.area.prem{grid-area:prem;background:var(--prem);border-radius:12px}
+.areahead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.pct{font-family:var(--f-hand);font-weight:700;font-size:38px;line-height:1}
+.meter{background:rgba(255,255,255,.82);border:2px solid var(--board-ink);border-radius:14px;padding:10px 12px;margin-bottom:16px;display:grid;gap:7px}
+.meter .row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;font-size:13px}
+.meter .row b{font-size:15px}
+.bar{height:12px;border-radius:999px;background:#e8e0d6;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:var(--good);border-radius:999px;transition:width .25s}
+.bar.over i{background:var(--bad)}
+.bar .res{position:absolute;right:0;top:0;bottom:0;background:repeating-linear-gradient(45deg,var(--viola) 0 4px,transparent 4px 8px);opacity:.55}
+
+.offices{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.office{background:var(--white);border:3px solid var(--blue);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.office.on{background:#e7effa}
+.office .nm{font-weight:700;color:#1d3f74;font-size:13.5px;text-transform:uppercase;letter-spacing:.02em;line-height:1.2;min-height:2.4em}
+.step{display:flex;align-items:center;gap:4px}
+.step button{width:30px;height:30px;border-radius:8px;border:2px solid var(--blue);background:var(--white);font-weight:700;color:var(--blue);flex:none}
+.step input{text-align:center;padding:4px 2px;width:100%}
+.step .lbl{font-size:12px;color:var(--muted);margin-right:2px}
+.foot{margin-top:12px;font-size:13.5px;background:rgba(255,255,255,.6);border-radius:10px;padding:8px 12px}
+
+.fondi{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.fcard,.pcard{background:var(--white);border:4px solid var(--orange);border-radius:12px;padding:10px 12px 12px;display:grid;gap:8px;position:relative;min-width:0}
+.fcard .hd,.pcard .hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fcard .hd span{color:var(--orange);font-weight:700;font-size:12px;letter-spacing:.04em}
+.slotno{font-family:var(--f-hand);font-weight:700;font-size:24px;line-height:1;color:var(--board-ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cost{display:flex;justify-content:space-between;align-items:center;font-size:13px;border-top:1.5px dashed var(--line);padding-top:6px}
+.cost b{font-size:15px}
+.pcard{border-color:var(--green)}
+.pcard .hd span{color:var(--green);font-weight:700;font-size:12px;letter-spacing:.04em}
+.premi{display:grid;gap:12px}
+.x{border:0;background:transparent;color:var(--muted);font-size:20px;line-height:1;padding:0 4px}
+.banner{margin-top:22px;background:#e6f0fb;border:3px solid #2f2a6b;border-radius:6px;padding:14px 18px;box-shadow:5px 5px 0 #2f2a6b;position:relative}
+.banner::before,.banner::after{content:"";position:absolute;width:26px;height:14px;background:#f4ad3d;border:2px solid #2f2a6b;transform:rotate(-40deg)}
+.banner::before{top:-9px;left:-10px}.banner::after{bottom:-9px;right:-10px}
+.banner input{font-family:var(--f-hand);font-size:22px;border:0;background:transparent;border-bottom:2px dashed #2f2a6b;border-radius:0;padding:4px 2px}
+.warnlist{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.warnlist li{font-size:13px;display:flex;gap:8px;align-items:flex-start}
+
+/* sede */
+.sede{background:#fbf7ef;border:2.5px dashed var(--board-ink);border-radius:14px;padding:10px 14px 12px;margin-bottom:14px}
+.sede .sh{display:flex;justify-content:space-between;gap:6px 12px;align-items:baseline;flex-wrap:wrap}
+.sede h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+.sede .tot{font-size:17px;font-weight:700}
+.sede ul{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 18px;font-size:13px}
+.sede li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--line);padding:2px 0;min-width:0}
+.sede li span:first-child{min-width:0}
+.sede .codein{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.sede .codein input{flex:1 1 200px}
+.sedegrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:12px}
+.sedecol{border:2px solid var(--board-ink);border-radius:14px;padding:12px;background:var(--white);display:grid;gap:6px;min-width:0;align-content:start}
+.sedecol h3{font-size:15px}
+.sederow{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:8px;align-items:center;font-size:12.5px}
+.sederow input{text-align:right;padding:4px 6px}
+.sederow.extra{grid-template-columns:minmax(0,1fr) 112px}
+.sederow input[type=text]{text-align:left}
+.sedetot{border-top:2px solid var(--board-ink);padding-top:6px;display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px}
+
+.joinbox{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;background:var(--white);border:2px solid var(--board-ink);border-radius:14px;padding:10px 14px;margin-bottom:18px}
+.joinbox label.f{flex:1 1 100%}
+.codein{display:flex;gap:8px;flex-wrap:wrap;flex:1 1 260px}
+.codein input{flex:1 1 160px;text-transform:uppercase;letter-spacing:.08em}
+#share-link{text-transform:none;letter-spacing:0}
+.bigcode{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:clamp(40px,9vw,72px);font-weight:700;letter-spacing:.18em;line-height:1.1;margin:6px 0}
+[hidden]{display:none!important}
+img{max-width:100%}
+
+/* regia */
+.regia{display:grid;gap:22px}
+.regia .panel{padding:18px 20px}
+.regia h2{font-family:var(--f-hand);font-size:28px}
+.settings{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.settings label.f{width:200px}
+.scroll{overflow-x:auto;margin-top:12px}
+table.ov{border-collapse:collapse;width:100%;min-width:900px;font-size:13.5px}
+table.ov th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:2px solid var(--board-ink)}
+table.ov td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.mini{display:grid;gap:3px;min-width:140px}
+.mini .bar{height:8px}
+.mini small{font-size:11.5px;color:var(--muted)}
+.dot{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.terr{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:12px}
+.terr .box{border:2px solid var(--board-ink);border-radius:14px;padding:12px 14px;background:var(--white)}
+.terr .box h3{font-size:15px;margin-bottom:6px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:13.5px}
+.details{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;margin-top:12px}
+.details details{border:2px solid var(--board-ink);border-radius:14px;background:var(--white);padding:10px 14px}
+.details summary{cursor:pointer;font-weight:700}
+.details ul{margin:6px 0 10px;padding-left:18px;font-size:13px}
+.details h4{margin:10px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.import{display:grid;gap:8px;margin-top:6px}
+.import textarea{min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.empty{padding:18px;border:2px dashed var(--line);border-radius:14px;color:var(--muted);text-align:center}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(42,35,31,.55);display:flex;align-items:center;justify-content:center;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));z-index:50}
+.modal .panel{max-width:560px;width:100%;padding:20px;display:grid;gap:12px}
+.modal textarea{min-height:120px;font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--board-ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;z-index:60}
+
+@media (max-width:900px){
+  .head{grid-template-columns:1fr}
+  .board{grid-template-columns:1fr;grid-template-areas:"uff" "prest" "prem"}
+}
+@media (max-width:520px){
+  .brand{font-size:20px}
+  .area{padding:20px 14px 16px;border-radius:28px !important}
+  .two{grid-template-columns:1fr}
+  .pct{font-size:30px}
+  .sync{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Cassa Edile Dream</div>
+    <nav class="tabs" role="tablist">
+      <button id="tab-tavolo" role="tab" aria-selected="true">Tavolo di gioco</button>
+      <button id="tab-regia" role="tab" aria-selected="false">Regia</button>
+    </nav>
+    <div class="sync" id="sync"><i></i><span>Solo su questo dispositivo</span></div>
+  </header>
+  <main id="view-tavolo"></main>
+  <main id="view-regia" hidden></main>
+</div>
+<div id="modal-root"></div>
+
+<script>
+/* ---------- dati del gioco (dal materiale cartaceo) ---------- */
+const CASSE={
+  allegria:{nome:"Provincia Allegria",tipo:"Cassa Edile provinciale",lav:14793,fasce:[25,45,30],imprese:3095,massa:243998149,col:"#1aa0bd"},
+  soddisfazione:{nome:"Provincia Soddisfazione",tipo:"Cassa Edile provinciale",lav:8110,fasce:[21,47,32],imprese:1454,massa:120089357,col:"#e2700f"},
+  appagamento:{nome:"Regione Appagamento",tipo:"Cassa Edile regionale",lav:6785,fasce:[20,40,40],imprese:1607,massa:105404409,col:"#6b3f12"}
+};
+const GRUPPI={1:"allegria",2:"allegria",3:"soddisfazione",4:"soddisfazione",5:"appagamento",6:"appagamento"};
+const AREE=[
+  {k:"uff",nome:"Uffici / Servizi",q:.75,col:"#e9b93a"},
+  {k:"prest",nome:"Prestazioni ai lavoratori",q:.45,col:"#e8702a"},
+  {k:"prem",nome:"Premialità imprese",q:1.05,col:"#7f9fc8"}
+];
+const UFFICI=["Direzione","Vicedirezione","Segreteria","Amministrazione","Recupero Crediti","Ufficio DURC","Ufficio BNI","Ufficio MUT","Ufficio CED","Ufficio Legale","Asseverazione","Corsi","Ufficio Legalità","Ufficio Progetti e Bandi","Ufficio Appalti","Ufficio Visite"];
+const VIOLA=[{prest:5,prem:10,uff:18,aum:3},{prest:3,prem:8,uff:11,aum:2},{prest:1,prem:2,uff:17,aum:4}];
+const TARGET={tutti:"Tutti i lavoratori",u35:"Under 35",m35:"Over 35 – under 50",o50:"Over 50 – under 65"};
+const MAX_PREMI=10;
+const SEDE_VOCI=[
+  {k:"affitto",nome:"Affitto o ammortamento della sede"},
+  {k:"utenze",nome:"Utenze: energia, gas, acqua"},
+  {k:"pulizie",nome:"Pulizie e vigilanza"},
+  {k:"manut",nome:"Manutenzioni e spese condominiali"},
+  {k:"assic",nome:"Assicurazioni"},
+  {k:"it",nome:"Informatica e software gestionali"},
+  {k:"tel",nome:"Telefonia e connettività"},
+  {k:"consul",nome:"Consulenze e revisione dei conti"},
+  {k:"organi",nome:"Organi di gestione (comitato, gettoni)"},
+  {k:"varie",nome:"Cancelleria, postali, spese bancarie"}
+];
+const MAX_EXTRA=3;
+/* valori di esempio, da adattare: servono a far emergere le economie di scala tra Casse di dimensioni diverse */
+const SEDE_ESEMPIO={
+  allegria:{affitto:120000,utenze:36000,pulizie:18000,manut:15000,assic:12000,it:60000,tel:10000,consul:40000,organi:48000,varie:15000},
+  soddisfazione:{affitto:70000,utenze:22000,pulizie:11000,manut:9000,assic:8000,it:40000,tel:7000,consul:30000,organi:36000,varie:9000},
+  appagamento:{affitto:80000,utenze:24000,pulizie:12000,manut:10000,assic:8000,it:42000,tel:8000,consul:32000,organi:40000,varie:9000}
+};
+
+/* ---------- utilità ---------- */
+const eur=new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+const nf=new Intl.NumberFormat("it-IT");
+const E=v=>eur.format(Math.round(v||0));
+const N=v=>nf.format(Math.round(v||0));
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const LS="ced:";
+function lsGet(k){try{return JSON.parse(localStorage.getItem(LS+k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(LS+k)}catch(e){}}
+function toast(msg){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+
+/* ---------- stato ---------- */
+let cfg=Object.assign({costo:45000,sede:{}},lsGet("cfg")||{});
+if(!cfg.sede||typeof cfg.sede!=="object")cfg.sede={};
+function sedeOf(cassa){const s=cfg.sede[cassa];return s&&typeof s==="object"?s:{}}
+function sedeExtra(cassa){const x=sedeOf(cassa).extra;return Array.isArray(x)?x:[]}
+function sedeTot(cassa){
+  const s=sedeOf(cassa);
+  return SEDE_VOCI.reduce((t,v)=>t+(+s[v.k]||0),0)+sedeExtra(cassa).reduce((t,x)=>t+(+x.importo||0),0);
+}
+let S=null;            // stato del tavolo aperto su questo dispositivo
+let db=null, canWrite=false, remote={};
+let ui={confirm:false};
+
+function nuovoStato(g){
+  return {g, cassa:GRUPPI[g], nome:"", uffici:{},
+    fondi:Array.from({length:5},()=>({nome:"",target:"tutti",importo:"",benef:""})),
+    premi:Array.from({length:3},()=>({nome:"",criterio:"",importo:"",imprese:""})),
+    round:1, viola:null, r1:null, updated:Date.now()};
+}
+function calc(s,costo=cfg.costo){
+  const c=CASSE[s.cassa];
+  const v=(s.round===2&&s.viola!=null)?VIOLA[s.viola]:null;
+  const massa=c.massa*(1+(v?v.aum/100:0));
+  const b={};
+  AREE.forEach(a=>{const l=massa*a.q/100;const r=v?l*v[a.k]/100:0;b[a.k]={lordo:l,riserva:r,netto:l-r}});
+  const pers=Object.values(s.uffici||{}).reduce((x,y)=>x+(+y||0),0);
+  const sede=sedeTot(s.cassa), costoPers=pers*costo;
+  const spesa={
+    uff:costoPers+sede,
+    prest:(s.fondi||[]).reduce((t,f)=>t+(+f.importo||0)*(+f.benef||0),0),
+    prem:(s.premi||[]).reduce((t,p)=>t+(+p.importo||0)*(+p.imprese||0),0)
+  };
+  return {c,v,massa,b,spesa,pers,sede,costoPers,contributo:massa*2.25/100};
+}
+function platea(c,t){
+  if(t==="u35")return Math.round(c.lav*c.fasce[0]/100);
+  if(t==="m35")return Math.round(c.lav*c.fasce[1]/100);
+  if(t==="o50")return Math.round(c.lav*c.fasce[2]/100);
+  return c.lav;
+}
+function stato(spesa,netto){
+  if(spesa>netto+0.5)return{cls:"bad",txt:"Sforato"};
+  if(spesa===0)return{cls:"neutral",txt:"Da impostare"};
+  if(spesa<netto*0.85)return{cls:"warn",txt:"Risorse inutilizzate"};
+  return{cls:"ok",txt:"In equilibrio"};
+}
+
+/* ---------- salvataggio ---------- */
+let saveT=null;
+function touch(){
+  S.updated=Date.now();
+  lsSet(pk("g")+S.g,S);
+  clearTimeout(saveT);
+  saveT=setTimeout(pushRemote,1200);
+}
+async function pushRemote(){
+  if(!db||!canWrite||!S)return;
+  try{await db.doc("gruppi/g"+S.g).set(JSON.parse(JSON.stringify(S)))}
+  catch(e){ console.error(e); if(e&&(e.code==="invalid_argument"||e.code==="permission-denied")){canWrite=false;setSync();toast("La regia non riceve i dati: controllate le regole di Firestore")} }
+}
+function setSync(){
+  const el=$("#sync"), on=db&&canWrite;
+  el.className="sync"+(on?" on":fs?" ro":"");
+  el.querySelector("span").textContent=on?`Partita ${partita} · collegato`:fs?"Nessuna partita: inserite il codice":"Solo su questo dispositivo";
+}
+
+/* ---------- vista tavolo ---------- */
+function renderTavolo(){
+  const root=$("#view-tavolo");
+  if(!S){root.innerHTML=chooserHTML();bindChooser();return}
+  const k=calc(S);
+  root.innerHTML=`
+  <section class="head">
+    ${cassaHTML(k)}
+    <div class="panel roundbox" id="roundbox"></div>
+  </section>
+  <section class="board">
+    <div class="area uff" id="a-uff">
+      <div class="areahead"><span class="tag">Uffici / Servizi</span><span class="pct">0,75%</span></div>
+      <div class="meter" id="m-uff"></div>
+      <div class="sede" id="sede-box"></div>
+      <div class="offices">${UFFICI.map((u,i)=>officeHTML(u,i)).join("")}</div>
+      <div class="foot num" id="f-uff"></div>
+    </div>
+    <div class="area prest" id="a-prest">
+      <div class="areahead"><span class="tag">Prestazioni ai lavoratori</span><span class="pct">0,45%</span></div>
+      <div class="meter" id="m-prest"></div>
+      <div class="fondi">${S.fondi.map((f,i)=>fondoHTML(f,i,k.c)).join("")}</div>
+    </div>
+    <div class="area prem" id="a-prem">
+      <div class="areahead"><span class="tag">Premialità imprese</span><span class="pct">1,05%</span></div>
+      <div class="meter" id="m-prem"></div>
+      <div class="premi" id="premi"></div>
+      <div style="margin-top:12px"><button class="btn small" id="add-premio">+ Aggiungi premialità</button> <span class="hint" id="premi-count"></span></div>
+    </div>
+  </section>
+  <div class="banner">
+    <label class="f" for="nome-cassa">Il nome o lo slogan della vostra Cassa</label>
+    <input type="text" id="nome-cassa" maxlength="80" placeholder="Es. La Cassa che costruisce futuro" value="${esc(S.nome)}">
+  </div>`;
+  renderPremi();
+  renderRound();
+  bindBoard();
+  updateTotals();
+}
+function chooserHTML(){
+  const saved=[1,2,3,4,5,6].filter(g=>lsGet(pk("g")+g));
+  return `<section class="panel chooser">
+    ${joinHTML()}
+    <h2>Scegliete il vostro tavolo</h2>
+    <p class="muted" style="margin:4px 0 0;max-width:70ch">Tre Casse Edili, una regionale e due provinciali, insistono sullo stesso territorio della Regione Appagamento. Con 6 gruppi ogni Cassa è giocata da due tavoli; con 3 gruppi usate i tavoli 1, 3 e 5.</p>
+    <div class="tables">${[1,2,3,4,5,6].map(g=>{const c=CASSE[GRUPPI[g]];return `
+      <button class="tablecard" data-g="${g}">
+        <span class="hint">Tavolo ${g}${saved.includes(g)?" · partita in corso":""}</span>
+        <b>${c.nome}</b>
+        <span class="hint num">${N(c.lav)} lavoratori · ${N(c.imprese)} imprese</span>
+      </button>`}).join("")}</div>
+    <details class="how" open>
+      <summary>Come si gioca</summary>
+      <ol>
+        <li>Ogni Cassa riceve il contributo del <b>2,25%</b> sulla massa salari, già diviso dal CCNL: 0,75% per uffici e gestione, 0,45% per le prestazioni ai lavoratori, 1,05% per le premialità alle imprese.</li>
+        <li><b>Uffici / Servizi.</b> Decidete quali uffici aprire e quante persone assumere. Ogni dipendente costa in media ${E(cfg.costo)} l'anno. Dalla stessa quota escono anche le spese della sede (affitto, utenze, informatica…), fissate dalla regia.</li>
+        <li><b>Prestazioni ai lavoratori.</b> Progettate fino a 5 fondi territoriali CCPL: a chi si rivolgono, quanto vale la prestazione, quanti beneficiari prevedete.</li>
+        <li><b>Premialità imprese.</b> Inventate fino a 10 premialità: criterio, importo per impresa, quante imprese premiate.</li>
+        <li>Chiuso il round 1, ogni tavolo pesca a caso un <b>cartellino viola</b>: riserve obbligatorie su ogni quota e un aumento della massa salari. Nel round 2 riadattate la Cassa al nuovo bilancio.</li>
+        <li>La regia vede le Casse di tutti i tavoli e le confronta in plenaria.</li>
+      </ol>
+    </details>
+  </section>`;
+}
+function joinHTML(){
+  if(!fs)return "";
+  if(partita)return `<div class="joinbox"><span>Partita <b class="num">${partita}</b> · i vostri dati arrivano alla regia</span><button class="btn small ghost" id="join-change">Cambia partita</button></div>`;
+  return `<div class="joinbox"><label class="f" for="join-code">Codice della partita (lo trovate sullo schermo della regia)</label><div class="codein"><input type="text" id="join-code" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="Es. K7QX2M"><button class="btn small primary" id="join-go">Entra</button></div></div>`;
+}
+function bindChooser(){
+  document.querySelectorAll(".tablecard").forEach(b=>b.onclick=()=>apriTavolo(+b.dataset.g));
+  const jg=$("#join-go");
+  if(jg){const go=()=>{const c=pulisciCodice($("#join-code").value);if(c.length<4){toast("Inserite il codice della partita");return}connectPartita(c);toast("Collegati alla partita "+c)};
+    jg.onclick=go;$("#join-code").onkeydown=e=>{if(e.key==="Enter")go()}}
+  const jc=$("#join-change"); if(jc)jc.onclick=()=>connectPartita("");
+}
+function apriTavolo(g){
+  let loc=lsGet(pk("g")+g); const rem=remote["g"+g];
+  if(rem&&(!loc||rem.updated>loc.updated))loc=JSON.parse(JSON.stringify(rem));
+  S=loc||nuovoStato(g);
+  lsSet(pk("current"),g); ui.confirm=false;
+  renderTavolo(); window.scrollTo({top:0});
+}
+function cassaHTML(k){
+  const c=k.c;
+  return `<article class="cassacard">
+    <div class="kind">Tavolo ${S.g} · ${c.tipo}</div>
+    <h2>${c.nome}</h2>
+    <dl class="facts num">
+      <dt>Numero lavoratori</dt><dd>${N(c.lav)}</dd>
+      <dt>Numero imprese</dt><dd>${N(c.imprese)}</dd>
+      <dt>Massa salari</dt><dd>${E(c.massa)}${k.v?` <span class="chip warn">+${k.v.aum}% → ${E(k.massa)}</span>`:""}</dd>
+    </dl>
+    <div class="ages" aria-label="Lavoratori per fascia d'età">
+      <span style="flex:${c.fasce[0]};background:#2f63ad">${c.fasce[0]}% under 35</span>
+      <span style="flex:${c.fasce[1]};background:#4c8a39">${c.fasce[1]}% 35–50</span>
+      <span style="flex:${c.fasce[2]};background:#a8541c">${c.fasce[2]}% 50–65</span>
+    </div>
+    <div class="contrib num">
+      <div><span>Contributo Cassa Edile 2,25%</span><b>${E(k.contributo)}</b></div>
+      ${AREE.map(a=>`<div><span>${a.q.toFixed(2).replace(".",",")}% · ${a.nome}</span><span>${E(k.b[a.k].lordo)}</span></div>`).join("")}
+    </div>
+  </article>`;
+}
+function officeHTML(u,i){
+  const n=+S.uffici[u]||0;
+  return `<div class="office${n?" on":""}" data-u="${i}">
+    <div class="nm">${u}</div>
+    <div class="step">
+      <button type="button" data-d="-1" aria-label="Togli una persona da ${u}">−</button>
+      <input type="number" inputmode="numeric" min="0" max="999" id="uf-${i}" value="${n||""}" placeholder="0" aria-label="Persone in ${u}">
+      <button type="button" data-d="1" aria-label="Aggiungi una persona a ${u}">+</button>
+    </div>
+  </div>`;
+}
+function fondoHTML(f,i,c){
+  return `<div class="fcard" data-i="${i}">
+    <div class="hd"><span>FONDI TERRITORIALI CCPL</span><span class="slotno">${i+1}</span></div>
+    <label class="f">Nome della prestazione<input type="text" id="fn-${i}" data-k="nome" value="${esc(f.nome)}" placeholder="Es. Borsa di studio figli"></label>
+    <label class="f">A chi si rivolge<select id="ft-${i}" data-k="target">${Object.entries(TARGET).map(([v,l])=>`<option value="${v}"${f.target===v?" selected":""}>${l}</option>`).join("")}</select></label>
+    <div class="two">
+      <label class="f">€ per beneficiario<input type="number" min="0" inputmode="decimal" id="fi-${i}" data-k="importo" value="${esc(f.importo)}" placeholder="0"></label>
+      <label class="f">N. beneficiari<input type="number" min="0" inputmode="numeric" id="fb-${i}" data-k="benef" value="${esc(f.benef)}" placeholder="0"></label>
+    </div>
+    <div class="hint num" id="fh-${i}">Platea massima: ${N(platea(c,f.target))}</div>
+    <div class="cost num"><span>Costo annuo</span><b id="fc-${i}">${E(0)}</b></div>
+  </div>`;
+}
+function renderPremi(){
+  const box=$("#premi");
+  box.innerHTML=S.premi.map((p,i)=>`<div class="pcard" data-i="${i}">
+    <div class="hd"><span>PREMIALITÀ IMPRESE</span><button class="x" data-rm="${i}" aria-label="Elimina questa premialità">×</button></div>
+    <label class="f">Nome<input type="text" id="pn-${i}" data-k="nome" value="${esc(p.nome)}" placeholder="Es. Bonus regolarità contributiva"></label>
+    <label class="f">Criterio per ottenerla<input type="text" id="pc-${i}" data-k="criterio" value="${esc(p.criterio)}" placeholder="Es. zero infortuni nell'anno"></label>
+    <div class="two">
+      <label class="f">€ per impresa<input type="number" min="0" inputmode="decimal" id="pi-${i}" data-k="importo" value="${esc(p.importo)}" placeholder="0"></label>
+      <label class="f">N. imprese<input type="number" min="0" inputmode="numeric" id="pm-${i}" data-k="imprese" value="${esc(p.imprese)}" placeholder="0"></label>
+    </div>
+    <div class="cost num"><span>Costo annuo</span><b id="pk-${i}">${E(0)}</b></div>
+  </div>`).join("")||`<div class="empty">Nessuna premialità. Aggiungetene una.</div>`;
+  $("#add-premio").disabled=S.premi.length>=MAX_PREMI;
+  $("#premi-count").textContent=`${S.premi.length} di ${MAX_PREMI}`;
+}
+function meterHTML(key,k){
+  const b=k.b[key], sp=k.spesa[key], st=stato(sp,b.netto);
+  const pct=Math.min(100,b.netto?sp/b.netto*100:0);
+  const resPct=b.lordo?b.riserva/b.lordo*100:0;
+  return `<div class="row num"><span>Disponibile <b>${E(b.netto)}</b>${b.riserva?` <span class="hint">(riserva ${E(b.riserva)})</span>`:""}</span><span class="chip ${st.cls}">${st.txt}</span></div>
+    <div class="bar${sp>b.netto+0.5?" over":""}" role="img" aria-label="Assegnato ${Math.round(pct)}%"><i style="width:${pct}%"></i></div>
+    <div class="row num"><span>Assegnato ${E(sp)}</span><span>${sp>b.netto?"Sforamento":"Residuo"} <b>${E(Math.abs(b.netto-sp))}</b></span></div>`;
+}
+function updateTotals(){
+  const k=calc(S);
+  AREE.forEach(a=>{$("#m-"+a.k).innerHTML=meterHTML(a.k,k)});
+  $("#f-uff").innerHTML=`Personale <b>${N(k.pers)}</b> × ${E(cfg.costo)} = <b>${E(k.costoPers)}</b> · Spese della sede <b>${E(k.sede)}</b> · Totale <b>${E(k.spesa.uff)}</b>`;
+  renderSedeBox(k);
+  S.fondi.forEach((f,i)=>{
+    $("#fc-"+i).textContent=E((+f.importo||0)*(+f.benef||0));
+    const pl=platea(k.c,f.target), h=$("#fh-"+i);
+    const over=(+f.benef||0)>pl;
+    h.innerHTML=`Platea massima: ${N(pl)}${over?` <span class="chip bad">beneficiari oltre la platea</span>`:""}`;
+  });
+  S.premi.forEach((p,i)=>{
+    const el=$("#pk-"+i); if(el)el.textContent=E((+p.importo||0)*(+p.imprese||0));
+  });
+  document.querySelectorAll(".office").forEach(o=>{o.classList.toggle("on",(+S.uffici[UFFICI[+o.dataset.u]]||0)>0)});
+}
+function renderSedeBox(k){
+  const box=$("#sede-box"); if(!box)return;
+  if(box.contains(document.activeElement))return; // non disturbare chi sta incollando il codice
+  const s=sedeOf(S.cassa), extra=sedeExtra(S.cassa).filter(x=>+x.importo||x.nome);
+  const righe=SEDE_VOCI.filter(v=>+s[v.k]).map(v=>[v.nome,+s[v.k]]).concat(extra.map(x=>[x.nome||"Altra spesa",+x.importo||0]));
+  const quota=k.b.uff.netto?k.sede/k.b.uff.netto*100:0;
+  if(!righe.length){
+    box.innerHTML=`<div class="sh"><h4>Spese della sede</h4><span class="chip neutral">Fissate dalla regia</span></div>
+      <p class="hint" style="margin:6px 0 0">La regia non ha ancora inserito affitto, utenze e altre spese della sede. Se vi ha mandato un codice, incollatelo qui.</p>
+      <div class="codein"><input type="text" id="sede-code" placeholder="CED1.…" aria-label="Codice spese della sede"><button class="btn small" id="sede-code-go">Applica</button></div>`;
+  } else {
+    box.innerHTML=`<div class="sh"><h4>Spese della sede · fissate dalla regia</h4><span><span class="tot num">${E(k.sede)}</span> <span class="chip ${quota>40?"bad":quota>25?"warn":"neutral"}">${quota.toFixed(0)}% della quota 0,75%</span></span></div>
+      <ul class="num">${righe.map(([n,v])=>`<li><span>${esc(n)}</span><span>${E(v)}</span></li>`).join("")}</ul>
+      <p class="hint" style="margin:6px 0 0">Sono costi fissi: si pagano prima del personale e non si possono togliere.</p>`;
+  }
+  const go=$("#sede-code-go",box);
+  if(go)go.onclick=async()=>{
+    try{const o=await decode($("#sede-code").value.trim());
+      if(!o||o.t!=="cfg")throw new Error();
+      applyCfg(o); toast("Spese della sede applicate");}
+    catch(e){toast("Codice non valido: è quello delle spese della sede?")}
+  };
+}
+function applyCfg(o){
+  if(typeof o.costo==="number")cfg.costo=o.costo;
+  if(o.sede&&typeof o.sede==="object")cfg.sede=o.sede;
+  lsSet("cfg",cfg);
+  if(S&&$("#sede-box")){$("#sede-box").innerHTML="";updateTotals();renderRound()}
+  renderRegia();
+}
+function bindBoard(){
+  // uffici
+  $("#a-uff").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-d]"); if(!b)return;
+    const i=+b.closest(".office").dataset.u, u=UFFICI[i];
+    const n=Math.max(0,(+S.uffici[u]||0)+(+b.dataset.d));
+    if(n)S.uffici[u]=n; else delete S.uffici[u];
+    $("#uf-"+i).value=n||""; touch(); updateTotals();
+  });
+  $("#a-uff").addEventListener("input",e=>{
+    if(!e.target.id.startsWith("uf-"))return;
+    const u=UFFICI[+e.target.id.slice(3)], n=Math.max(0,Math.floor(+e.target.value||0));
+    if(n)S.uffici[u]=n; else delete S.uffici[u];
+    touch(); updateTotals();
+  });
+  // fondi
+  const onFondo=e=>{
+    const card=e.target.closest(".fcard"); if(!card||!e.target.dataset.k)return;
+    S.fondi[+card.dataset.i][e.target.dataset.k]=e.target.value; touch(); updateTotals();
+  };
+  $("#a-prest").addEventListener("input",onFondo);
+  $("#a-prest").addEventListener("change",onFondo);
+  // premi
+  $("#a-prem").addEventListener("input",e=>{
+    const card=e.target.closest(".pcard"); if(!card||!e.target.dataset.k)return;
+    S.premi[+card.dataset.i][e.target.dataset.k]=e.target.value; touch(); updateTotals();
+  });
+  $("#a-prem").addEventListener("click",e=>{
+    const rm=e.target.closest("[data-rm]");
+    if(rm){S.premi.splice(+rm.dataset.rm,1);touch();renderPremi();updateTotals();return}
+    if(e.target.id==="add-premio"&&S.premi.length<MAX_PREMI){
+      S.premi.push({nome:"",criterio:"",importo:"",imprese:""});touch();renderPremi();updateTotals();
+      $("#pn-"+(S.premi.length-1)).focus();
+    }
+  });
+  $("#nome-cassa").addEventListener("input",e=>{S.nome=e.target.value;touch()});
+}
+
+/* ---------- round ---------- */
+function renderRound(){
+  const box=$("#roundbox"); const k=calc(S);
+  const footer=`<div class="actions">
+      <button class="btn" id="btn-code">Invia alla regia</button>
+      <button class="btn ghost" id="btn-change">Cambia tavolo</button>
+    </div>`;
+  if(S.round===1&&!S.r1){
+    box.innerHTML=`<div class="rt"><span class="roundnum">ROUND 1</span><h3>Progettate la vostra Cassa</h3></div>
+      <p style="margin:0" class="muted">Ripartite le tre quote: aprite gli uffici e assumete il personale, progettate le prestazioni per i lavoratori e le premialità per le imprese. Ogni area deve stare nel suo budget.</p>
+      ${checks(k)}
+      ${ui.confirm?`<div class="confirm"><p>Chiudendo il round 1 fissate il vostro progetto e pescate un cartellino viola. Confermate?</p><button class="btn small primary" id="r1-yes">Sì, chiudi il round</button><button class="btn small" id="r1-no">Annulla</button></div>`
+        :`<div class="actions"><button class="btn viola" id="r1-close">Chiudi il round 1 e pesca il cartellino viola</button></div>`}
+      ${footer}`;
+  } else if(S.viola==null){
+    box.innerHTML=`<div class="rt"><span class="roundnum">ROUND 2</span><h3>Pescate un cartellino viola</h3></div>
+      <p style="margin:0" class="muted">Uno di questi cartellini cambierà il bilancio della vostra Cassa.</p>
+      <div class="deck">${[0,1,2].map(i=>`<button class="vcard back" data-pick="${i}" aria-label="Pesca il cartellino ${i+1}">?</button>`).join("")}</div>
+      <div class="actions" style="align-items:center"><span class="hint">Avete pescato un cartellino di carta? Indicate quale:</span>${[0,1,2].map(i=>`<button class="btn small" data-set="${i}">Cartellino ${i+1} (+${VIOLA[i].aum}%)</button>`).join("")}</div>
+      ${footer}`;
+  } else {
+    const v=VIOLA[S.viola], r1=S.r1;
+    box.innerHTML=`<div class="rt"><span class="roundnum">ROUND 2</span><h3>Riadattate la Cassa</h3></div>
+      <div class="r2grid">
+        ${violaCardHTML(v)}
+        <div style="min-width:0;overflow-x:auto">
+          <table class="cmp num"><thead><tr><th>Quota</th><th>Budget R1</th><th>Budget R2</th><th>Assegnato R1</th><th>Assegnato ora</th></tr></thead>
+          <tbody>${AREE.map(a=>`<tr><td>${a.nome}</td><td>${E(r1.b[a.k])}</td><td>${E(k.b[a.k].netto)}</td><td>${E(r1.spesa[a.k])}</td><td>${E(k.spesa[a.k])}</td></tr>`).join("")}</tbody></table>
+          <p class="hint" style="margin:8px 0 0">Le riserve tolgono una parte di ogni quota; l'aumento della massa salari ne aggiunge. Sistemate le aree che ora sforano.</p>
+        </div>
+      </div>
+      ${checks(k)}
+      ${footer}`;
+  }
+  const on=(id,fn)=>{const el=$("#"+id,box);if(el)el.onclick=fn};
+  on("r1-close",()=>{ui.confirm=true;renderRound()});
+  on("r1-no",()=>{ui.confirm=false;renderRound()});
+  on("r1-yes",()=>{
+    ui.confirm=false;
+    S.r1={b:Object.fromEntries(AREE.map(a=>[a.k,k.b[a.k].netto])),spesa:{...k.spesa},pers:k.pers,
+      fondi:S.fondi.filter(f=>f.nome).length,premi:S.premi.filter(p=>p.nome).length,
+      snap:JSON.parse(JSON.stringify({uffici:S.uffici,fondi:S.fondi,premi:S.premi}))};
+    touch(); renderRound();
+  });
+  box.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{
+    S.viola=+b.dataset.set; S.round=2; touch();
+    renderTavolo(); toast(`Cartellino ${S.viola+1} applicato`);
+  });
+  box.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>{
+    S.viola=Math.floor(Math.random()*VIOLA.length); S.round=2; touch();
+    renderTavolo(); toast("Cartellino pescato: nuovo bilancio applicato");
+  });
+  on("btn-change",()=>{S=null;lsDel(pk("current"));renderTavolo()});
+  on("btn-code",mostraCodice);
+}
+function violaCardHTML(v){
+  return `<div class="vcard"><h4>Riserve:</h4><ul class="num">
+    <li>▸ <b>${v.prest}%</b> su 0,45%</li><li>▸ <b>${v.prem}%</b> su 1,05%</li><li>▸ <b>${v.uff}%</b> su 0,75%</li></ul>
+    <div class="aum">Aumento massa salari<b>${v.aum}%</b></div></div>`;
+}
+function checks(k){
+  const items=[];
+  AREE.forEach(a=>{
+    const st=stato(k.spesa[a.k],k.b[a.k].netto);
+    if(st.cls==="bad")items.push(["bad",`${a.nome}: sforate di ${E(k.spesa[a.k]-k.b[a.k].netto)}`]);
+    else if(st.cls==="warn")items.push(["warn",`${a.nome}: restano ${E(k.b[a.k].netto-k.spesa[a.k])} non assegnati`]);
+  });
+  if(k.sede>k.b.uff.netto)items.push(["bad",`Le sole spese della sede (${E(k.sede)}) superano la quota per la gestione`]);
+  if(!S.uffici["Direzione"])items.push(["warn","Nessuno in Direzione: chi guida la Cassa?"]);
+  if(!items.length&&AREE.every(a=>k.spesa[a.k]>0))items.push(["ok","Tutte le quote sono in equilibrio"]);
+  if(!items.length)return "";
+  return `<ul class="warnlist">${items.map(([c,t])=>`<li><span class="chip ${c}">${c==="ok"?"OK":c==="bad"?"!":"·"}</span><span>${t}</span></li>`).join("")}</ul>`;
+}
+
+/* ---------- codice per la regia ---------- */
+function b64u(bytes){let s="";for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function unb64u(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";const bin=atob(str);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+async function encode(obj){
+  const txt=JSON.stringify(obj);
+  try{const st=new Blob([txt]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+    return "CED1."+b64u(new Uint8Array(await new Response(st).arrayBuffer()))}
+  catch(e){return "CED0."+b64u(new TextEncoder().encode(txt))}
+}
+async function decode(code){
+  code=code.replace(/\s+/g,""); const dot=code.indexOf(".");
+  const p=code.slice(0,dot), bytes=unb64u(code.slice(dot+1));
+  if(p==="CED1"){const st=new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));return JSON.parse(await new Response(st).text())}
+  if(p==="CED0")return JSON.parse(new TextDecoder().decode(bytes));
+  throw new Error("formato");
+}
+async function mostraCodice(){
+  const code=await encode(S);
+  const live=db&&canWrite;
+  showCode("Invia alla regia",live?"Questo tavolo è già collegato: la regia vede i vostri dati in tempo reale. Il codice serve solo come copia di sicurezza.":"Copiate questo codice e mandatelo al formatore (chat, mail, WhatsApp). In Regia lo incolla e vede la vostra Cassa.",code);
+}
+
+/* ---------- regia ---------- */
+function gruppiNoti(){
+  const imp=lsGet(pk("imports"))||{};
+  const out={};
+  for(let g=1;g<=6;g++){
+    const cands=[remote["g"+g],imp["g"+g],lsGet(pk("g")+g)].filter(Boolean);
+    if(cands.length)out[g]=cands.sort((a,b)=>(b.updated||0)-(a.updated||0))[0];
+  }
+  return out;
+}
+let regiaDirty=false;
+function renderRegia(){
+  const root=$("#view-regia"); if(root.hidden)return;
+  const ae=document.activeElement;
+  if(ae&&root.contains(ae)&&ae.matches("input,textarea,select")){regiaDirty=true;return}
+  regiaDirty=false;
+  const G=gruppiNoti(); const ids=Object.keys(G).map(Number);
+  const rows=ids.map(g=>{const s=G[g],k=calc(s);return{g,s,k}});
+  const ago=t=>{if(!t)return"";const m=Math.round((Date.now()-t)/60000);return m<1?"ora":m<60?`${m} min fa`:new Date(t).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})};
+  const mini=(sp,b)=>{const st=stato(sp,b);const p=Math.min(100,b?sp/b*100:0);return `<div class="mini num"><div style="display:flex;justify-content:space-between;gap:6px"><span>${E(sp)}</span><span class="chip ${st.cls}">${st.txt}</span></div><div class="bar${sp>b+.5?" over":""}"><i style="width:${p}%"></i></div><small>su ${E(b)}</small></div>`};
+  const terr=(set,label)=>{
+    const rs=rows.filter(r=>set.includes(r.g)); if(!rs.length)return "";
+    const sum=f=>rs.reduce((t,r)=>t+f(r),0);
+    return `<div class="box"><h3>${label}</h3><div class="kv num">
+      <span>Casse presenti</span><b>${rs.map(r=>r.k.c.nome.replace("Provincia ","").replace("Regione ","")).join(", ")}</b>
+      <span>Contributi raccolti</span><b>${E(sum(r=>r.k.contributo))}</b>
+      <span>Dipendenti totali</span><b>${N(sum(r=>r.k.pers))}</b>
+      <span>Costo del personale</span><b>${E(sum(r=>r.k.costoPers))}</b>
+      <span>Spese delle sedi</span><b>${E(sum(r=>r.k.sede))}</b>
+      <span>Prestazioni erogate</span><b>${E(sum(r=>r.k.spesa.prest))}</b>
+      <span>Premialità erogate</span><b>${E(sum(r=>r.k.spesa.prem))}</b>
+      <span>Uffici aperti (somma)</span><b>${N(sum(r=>Object.keys(r.s.uffici||{}).length))}</b>
+    </div></div>`;
+  };
+  root.innerHTML=`<div class="regia">
+    ${partitaPanelHTML()}
+    <section class="panel">
+      <h2>Regia della partita</h2>
+      <div class="settings" style="margin-top:10px">
+        <label class="f" for="costo">Costo medio per dipendente (€/anno)<input type="number" id="costo" min="0" step="1000" value="${cfg.costo}"></label>
+        <div class="hint" style="flex:1 1 260px">${db&&canWrite?"Le Casse dei tavoli collegati arrivano qui in tempo reale.":"I tavoli non collegati inviano un codice: incollatelo qui sotto."}</div>
+        <div id="reset-zone"><button class="btn small" id="reset">Azzera i tavoli</button></div>
+      </div>
+      <div class="import">
+        <label class="f" for="imp">Incolla il codice di un tavolo</label>
+        <textarea id="imp" placeholder="CED1.…"></textarea>
+        <div><button class="btn small primary" id="imp-go">Aggiungi alla regia</button> <span class="hint" id="imp-msg"></span></div>
+      </div>
+    </section>
+    ${sedePanelHTML()}
+    <section class="panel">
+      <h2>Le Casse a confronto</h2>
+      ${rows.length?`<div class="scroll"><table class="ov">
+        <thead><tr><th>Tavolo</th><th>Round</th><th>Uffici 0,75%</th><th>Prestazioni 0,45%</th><th>Premialità 1,05%</th><th>Personale</th><th>Prest. / Prem.</th><th>Aggiornato</th></tr></thead>
+        <tbody>${rows.map(({g,s,k})=>`<tr>
+          <td><span class="dot" style="background:${k.c.col}"></span><b>${g}</b> · ${k.c.nome}${s.nome?`<div class="hint">“${esc(s.nome)}”</div>`:""}</td>
+          <td>${s.viola!=null?`R2 <span class="chip" style="background:var(--viola-soft);color:var(--viola)">viola ${s.viola+1}</span>`:s.r1?"Pesca…":"R1"}</td>
+          <td>${mini(k.spesa.uff,k.b.uff.netto)}<div class="hint num">di cui sede ${E(k.sede)}</div></td>
+          <td>${mini(k.spesa.prest,k.b.prest.netto)}</td>
+          <td>${mini(k.spesa.prem,k.b.prem.netto)}</td>
+          <td class="num">${N(k.pers)}<div class="hint">${Object.keys(s.uffici||{}).length} uffici</div></td>
+          <td class="num">${(s.fondi||[]).filter(f=>f.nome).length} / ${(s.premi||[]).filter(p=>p.nome).length}</td>
+          <td class="hint">${ago(s.updated)}</td></tr>`).join("")}</tbody></table></div>`
+      :`<div class="empty" style="margin-top:12px">Nessun tavolo ancora. Quando i gruppi iniziano a giocare o inviano il codice, le Casse compaiono qui.</div>`}
+    </section>
+    ${rows.length?`<section class="panel">
+      <h2>Stesso territorio, tre Casse</h2>
+      <p class="hint" style="margin:4px 0 0;max-width:80ch">Spunto per il debriefing: le tre Casse insistono sulla Regione Appagamento. Sommate, quanto costano in personale e uffici rispetto a quanto restituiscono a lavoratori e imprese?</p>
+      <div class="terr">${terr([1,3,5],"Territorio A · tavoli 1, 3, 5")}${terr([2,4,6],"Territorio B · tavoli 2, 4, 6")}</div>
+    </section>
+    <section class="panel">
+      <h2>Il dettaglio di ogni Cassa</h2>
+      <div class="details">${rows.map(({g,s,k})=>`<details>
+        <summary>Tavolo ${g} · ${k.c.nome}</summary>
+        <h4>Uffici e personale</h4>
+        <ul>${Object.entries(s.uffici||{}).map(([u,n])=>`<li>${esc(u)}: ${n}</li>`).join("")||"<li class='muted'>nessuno</li>"}</ul>
+        <h4>Prestazioni ai lavoratori</h4>
+        <ul>${(s.fondi||[]).filter(f=>f.nome).map(f=>`<li><b>${esc(f.nome)}</b> · ${TARGET[f.target]||""} · ${E(f.importo)} × ${N(f.benef)} = ${E((+f.importo||0)*(+f.benef||0))}</li>`).join("")||"<li class='muted'>nessuna</li>"}</ul>
+        <h4>Premialità imprese</h4>
+        <ul>${(s.premi||[]).filter(p=>p.nome).map(p=>`<li><b>${esc(p.nome)}</b>${p.criterio?` (${esc(p.criterio)})`:""} · ${E(p.importo)} × ${N(p.imprese)} = ${E((+p.importo||0)*(+p.imprese||0))}</li>`).join("")||"<li class='muted'>nessuna</li>"}</ul>
+        ${s.r1&&s.viola!=null?`<h4>Dal round 1 al round 2</h4><ul class="num">${AREE.map(a=>`<li>${a.nome}: budget ${E(s.r1.b[a.k])} → ${E(k.b[a.k].netto)}, assegnato ${E(s.r1.spesa[a.k])} → ${E(k.spesa[a.k])}</li>`).join("")}</ul>`:""}
+      </details>`).join("")}</div>
+    </section>`:""}
+  </div>`;
+  bindRegia();
+}
+function sedePanelHTML(){
+  const col=cassa=>{
+    const c=CASSE[cassa], s=sedeOf(cassa), ex=sedeExtra(cassa);
+    const rows=[...ex]; while(rows.length<MAX_EXTRA)rows.push({nome:"",importo:""});
+    return `<div class="sedecol" data-cassa="${cassa}">
+      <h3><span class="dot" style="background:${c.col}"></span>${c.nome}</h3>
+      ${SEDE_VOCI.map(v=>`<label class="sederow" for="sd-${cassa}-${v.k}"><span>${v.nome}</span><input type="number" min="0" step="1000" inputmode="numeric" id="sd-${cassa}-${v.k}" data-v="${v.k}" value="${s[v.k]??""}" placeholder="0"></label>`).join("")}
+      <div class="hint" style="margin-top:4px">Altre spese significative</div>
+      ${rows.map((x,i)=>`<div class="sederow extra"><input type="text" id="sx-${cassa}-${i}" data-xn="${i}" value="${esc(x.nome)}" placeholder="Es. Sede distaccata" aria-label="Altra spesa ${i+1}, descrizione"><input type="number" min="0" step="1000" id="sxi-${cassa}-${i}" data-xi="${i}" value="${x.importo??""}" placeholder="0" aria-label="Altra spesa ${i+1}, importo"></div>`).join("")}
+      <div class="sedetot num"><span>Totale sede</span><span id="st-${cassa}">${E(sedeTot(cassa))}</span></div>
+      <div class="hint num" id="sp-${cassa}">${sedePct(cassa)}</div>
+    </div>`;
+  };
+  return `<section class="panel">
+    <h2>Spese della sede</h2>
+    <p class="hint" style="margin:4px 0 0;max-width:80ch">Affitto, utenze e gli altri costi fissi di ogni Cassa. Escono dalla quota 0,75% prima del personale e i gruppi li vedono evidenziati nell'area Uffici. Gli importi sono annui.</p>
+    <div class="actions" style="margin-top:10px">
+      <button class="btn small" id="sede-esempio">Carica valori di esempio</button>
+      <button class="btn small" id="sede-zero">Azzera le spese</button>
+      <button class="btn small" id="sede-code">Codice per i tavoli non collegati</button>
+      <span id="sede-confirm"></span>
+    </div>
+    <div class="sedegrid">${Object.keys(CASSE).map(col).join("")}</div>
+  </section>`;
+}
+function sedePct(cassa){
+  const q=CASSE[cassa].massa*0.0075, t=sedeTot(cassa);
+  return t?`${(t/q*100).toFixed(0)}% della quota 0,75% (round 1) · restano ${E(q-t)} per il personale, circa ${N(Math.max(0,Math.floor((q-t)/cfg.costo)))} dipendenti`:"Nessuna spesa inserita";
+}
+let sedeSaveT=null;
+function saveCfg(){
+  cfg.updated=Date.now();
+  lsSet("cfg",cfg);
+  if(S&&$("#sede-box")){updateTotals();renderRound()}
+  clearTimeout(sedeSaveT);
+  sedeSaveT=setTimeout(async()=>{
+    if(db&&canWrite){try{await db.doc("config/partita").set({costo:cfg.costo,sede:JSON.parse(JSON.stringify(cfg.sede)),updated:cfg.updated})}catch(_){}}
+  },800);
+}
+function showCode(title,text,code){
+  $("#modal-root").innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+    <div class="panel">
+      <h3 id="mt" style="font-family:var(--f-hand);font-size:26px">${esc(title)}</h3>
+      <p style="margin:0" class="muted">${esc(text)}</p>
+      <textarea id="code-out" readonly>${code}</textarea>
+      <div class="actions"><button class="btn primary" id="copy">Copia il codice</button><button class="btn" id="close">Chiudi</button></div>
+    </div></div>`;
+  $("#close").onclick=()=>$("#modal-root").innerHTML="";
+  $("#copy").onclick=()=>{
+    const ta=$("#code-out");
+    navigator.clipboard.writeText(code).then(()=>toast("Codice copiato"),()=>{ta.focus();ta.select();toast("Selezionato: premete Ctrl+C")});
+  };
+}
+function partitaPanelHTML(){
+  if(!fs)return `<section class="panel"><h2>Partita</h2><p class="hint" style="margin:4px 0 0">Firebase non è configurato: il gioco funziona solo su questo dispositivo, con i codici. Per collegare regia e tavoli compilate il file config.js (vedi LEGGIMI).</p></section>`;
+  const link=partita?location.origin+location.pathname+"?p="+partita:"";
+  return `<section class="panel">
+    <h2>Partita</h2>
+    ${partita?`<div class="bigcode num" aria-label="Codice partita">${partita}</div>
+      <p class="hint" style="margin:0 0 8px">Proiettate questo codice: i tavoli lo inseriscono quando aprono il gioco. In alternativa mandate il link.</p>
+      <div class="codein"><input type="text" readonly id="share-link" value="${esc(link)}" aria-label="Link della partita"><button class="btn small" id="copy-link">Copia link</button></div>`
+      :`<p class="hint" style="margin:4px 0 0">Nessuna partita attiva. Createne una: i tavoli si collegano con il suo codice.</p>`}
+    <div class="actions" style="margin-top:12px;align-items:center">
+      <button class="btn small primary" id="new-partita">Crea una nuova partita</button>
+      <span class="codein" style="margin:0"><input type="text" id="regia-join" maxlength="8" autocomplete="off" placeholder="Codice esistente" aria-label="Codice di una partita esistente"><button class="btn small" id="regia-join-go">Riprendi</button></span>
+    </div>
+  </section>`;
+}
+function bindRegia(){
+  const root=$("#view-regia");
+  const np=$("#new-partita"); if(np)np.onclick=()=>{connectPartita(nuovoCodice());saveCfg();toast("Nuova partita creata: "+partita)};
+  const rj=$("#regia-join-go"); if(rj)rj.onclick=()=>{const c=pulisciCodice($("#regia-join").value);if(c.length<4){toast("Codice troppo corto");return}connectPartita(c);toast("Partita "+c+" ripresa")};
+  const cl=$("#copy-link"); if(cl)cl.onclick=()=>{const v=$("#share-link").value;navigator.clipboard.writeText(v).then(()=>toast("Link copiato"),()=>{$("#share-link").focus();$("#share-link").select()})};
+  root.onfocusout=()=>{setTimeout(()=>{if(regiaDirty)renderRegia()},50)};
+  root.querySelectorAll(".sedecol").forEach(colEl=>{
+    const cassa=colEl.dataset.cassa;
+    colEl.addEventListener("input",e=>{
+      const t=e.target;
+      const s=Object.assign({},sedeOf(cassa));
+      const ex=sedeExtra(cassa).map(x=>({...x})); while(ex.length<MAX_EXTRA)ex.push({nome:"",importo:""});
+      if(t.dataset.v){const n=Math.max(0,+t.value||0); if(n)s[t.dataset.v]=n; else delete s[t.dataset.v]}
+      else if(t.dataset.xn!=null)ex[+t.dataset.xn].nome=t.value;
+      else if(t.dataset.xi!=null)ex[+t.dataset.xi].importo=Math.max(0,+t.value||0)||"";
+      else return;
+      s.extra=ex.filter(x=>x.nome||x.importo);
+      cfg.sede={...cfg.sede,[cassa]:s};
+      $("#st-"+cassa).textContent=E(sedeTot(cassa));
+      $("#sp-"+cassa).textContent=sedePct(cassa);
+      saveCfg();
+    });
+  });
+  $("#sede-esempio").onclick=()=>{
+    $("#sede-confirm").innerHTML=`<span class="confirm" style="display:inline-flex"><span style="font-size:13px">Sostituisco gli importi attuali con i valori di esempio?</span><button class="btn small primary" id="se-yes">Sì</button><button class="btn small" id="se-no">No</button></span>`;
+    $("#se-no").onclick=()=>{$("#sede-confirm").innerHTML=""};
+    $("#se-yes").onclick=()=>{
+      const n={}; Object.keys(SEDE_ESEMPIO).forEach(c=>{n[c]={...SEDE_ESEMPIO[c],extra:[]}});
+      cfg.sede=n; saveCfg(); renderRegia(); toast("Valori di esempio caricati: adattateli alla vostra realtà");
+    };
+  };
+  $("#sede-zero").onclick=()=>{
+    $("#sede-confirm").innerHTML=`<span class="confirm" style="display:inline-flex"><span style="font-size:13px">Azzero le spese della sede di tutte le Casse?</span><button class="btn small primary" id="sz-yes">Sì</button><button class="btn small" id="sz-no">No</button></span>`;
+    $("#sz-no").onclick=()=>{$("#sede-confirm").innerHTML=""};
+    $("#sz-yes").onclick=()=>{cfg.sede={}; saveCfg(); renderRegia(); toast("Spese della sede azzerate")};
+  };
+  $("#sede-code").onclick=async()=>{
+    const code=await encode({t:"cfg",costo:cfg.costo,sede:cfg.sede});
+    showCode("Codice per i tavoli","I tavoli che non vedono le spese della sede incollano questo codice nel riquadro \"Spese della sede\" dell'area Uffici. Contiene anche il costo per dipendente.",code);
+  };
+
+  $("#costo").onchange=e=>{
+    cfg.costo=Math.max(0,+e.target.value||0); saveCfg();
+    Object.keys(CASSE).forEach(c=>{const el=$("#sp-"+c);if(el)el.textContent=sedePct(c)});
+    toast("Costo per dipendente aggiornato");
+  };
+  $("#imp-go").onclick=async()=>{
+    const txt=$("#imp").value.trim(); const msg=$("#imp-msg");
+    if(!txt){msg.textContent="Incollate prima un codice.";return}
+    try{
+      const s=await decode(txt);
+      if(!s||!s.g||!GRUPPI[s.g])throw new Error();
+      const imp=lsGet(pk("imports"))||{}; imp["g"+s.g]=s; lsSet(pk("imports"),imp);
+      if(db&&canWrite){try{await db.doc("gruppi/g"+s.g).set(s)}catch(_){}}
+      renderRegia(); toast(`Tavolo ${s.g} aggiunto`);
+    }catch(e){msg.textContent="Codice non leggibile: controllate di averlo copiato per intero."}
+  };
+  $("#reset").onclick=()=>{
+    $("#reset-zone").innerHTML=`<div class="confirm"><p>Cancello i dati di tutti i tavoli di questa partita?</p><button class="btn small primary" id="reset-yes">Sì, azzera</button><button class="btn small" id="reset-no">Annulla</button></div>`;
+    $("#reset-no").onclick=renderRegia;
+    $("#reset-yes").onclick=async()=>{
+      for(let g=1;g<=6;g++)lsDel(pk("g")+g);
+      lsDel(pk("imports")); lsDel(pk("current"));
+      if(db&&canWrite){for(let g=1;g<=6;g++){try{await db.doc("gruppi/g"+g).delete()}catch(_){}}}
+      remote={}; S=null; renderTavolo(); renderRegia(); toast("Tavoli azzerati");
+    };
+  };
+}
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  $("#tab-tavolo").setAttribute("aria-selected",t==="tavolo");
+  $("#tab-regia").setAttribute("aria-selected",t==="regia");
+  $("#view-tavolo").hidden=t!=="tavolo";
+  $("#view-regia").hidden=t!=="regia";
+  if(t==="regia")renderRegia();
+  if(location.hash!=="#"+t)history.replaceState(null,"","#"+t);
+}
+$("#tab-tavolo").onclick=()=>showTab("tavolo");
+$("#tab-regia").onclick=()=>showTab("regia");
+
+/* ---------- collegamento Firebase ---------- */
+var fs=null, unsubs=[], partita="";
+const ALFA="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function nuovoCodice(){const a=new Uint32Array(6);crypto.getRandomValues(a);return Array.from(a,n=>ALFA[n%ALFA.length]).join("")}
+function pulisciCodice(c){return String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8)}
+function pk(k){return partita?`p:${partita}:${k}`:k}
+function initFirebase(){
+  const c=window.FIREBASE_CONFIG;
+  if(!c||!c.apiKey||!c.projectId||!window.firebase)return;
+  try{firebase.initializeApp(c);fs=firebase.firestore()}catch(e){console.error("Firebase",e);fs=null}
+}
+function connectPartita(code){
+  unsubs.forEach(u=>{try{u()}catch(e){}}); unsubs=[]; remote={}; db=null; canWrite=false;
+  partita=fs?pulisciCodice(code):"";
+  cfg.updated=0; // i dati della partita sul server hanno la precedenza
+  try{if(partita)localStorage.setItem(LS+"partita",partita);else localStorage.removeItem(LS+"partita")}catch(e){}
+  try{const u=new URL(location.href);if(partita)u.searchParams.set("p",partita);else u.searchParams.delete("p");history.replaceState(null,"",u.pathname+u.search+u.hash)}catch(e){}
+  const cur=lsGet(pk("current"));
+  S=(cur&&GRUPPI[cur])?(lsGet(pk("g")+cur)||nuovoStato(cur)):null;
+  if(fs&&partita){
+    const base=`partite/${partita}/`;
+    db={doc:p=>fs.doc(base+p),collection:p=>fs.collection(base+p)};
+    canWrite=true;
+    unsubs.push(db.doc("config/partita").onSnapshot(sn=>{
+      if(!sn.exists||sn.metadata.hasPendingWrites)return;
+      const d=sn.data()||{};
+      if(cfg.updated&&(d.updated||0)<=cfg.updated)return; // la nostra versione è più recente
+      cfg.updated=d.updated||0;
+      applyCfg({t:"cfg",costo:d.costo,sede:JSON.parse(JSON.stringify(d.sede||{}))});
+    },e=>console.error(e)));
+    unsubs.push(db.collection("gruppi").onSnapshot(qs=>{
+      remote={}; qs.docs.forEach(d=>{remote[d.id]=d.data()}); renderRegia();
+    },e=>{console.error(e);canWrite=false;setSync();toast("Collegamento non riuscito: controllate config.js e le regole di Firestore")}));
+  }
+  setSync(); renderTavolo(); renderRegia();
+  if(S)pushRemote();
+}
+
+/* ---------- avvio ---------- */
+(function start(){
+  initFirebase();
+  let p=new URLSearchParams(location.search).get("p");
+  if(!p){try{p=localStorage.getItem(LS+"partita")}catch(e){}}
+  showTab(location.hash==="#regia"?"regia":"tavolo");
+  connectPartita(p||"");
+})();
+</script>
+
+</body>
+</html>
